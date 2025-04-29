@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- jQuery -->
+    <script language="JavaScript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.0/jquery.min.js"></script>
+    <!-- FavIcon -->
+    <link rel="icon" href="assets/icon/36x36.png" sizes="36x36" />
+    <!-- Custom Style CSS -->
+    <link rel="stylesheet" href="main.css" />
+    <title>Login</title>
+        <!-- Font Face Style  -->
+        <style media="screen" type="text/css">
+            @font-face {
+                font-family: Pixel Digivolve;
+                src: url("assets/font/Pixel Digivolve.otf");
+            }
+        </style>
+</head>
+<body>
+    <div class="top-layer">
+        <div class="top-layer-container">
+            <p class="title">Kidocode</p>
+            <p class="game-title">Game of Cards</p>
+            <div class="fields">
+                <input id="login" type="password" placeholder="Enter password here" />
+                <br>
+                <button class="login-btn">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <script>      
+        let password = "maysam"
+        let session;
+        let sid = Math.random().toString(36)
+        
+        $('#login').keypress(function (event) {
+            let inputText = $('#login').val()
+            let keycode = (event.keyCode ? event.keyCode : event.which);
+            if (keycode == '13' && inputText === password) {
+                $('.top-layer').hide()
+                $('#login').val("")
+                sessionStorage.setItem("session", sid)
+                session = sessionStorage.getItem("session")
+                session === sid ? window.location.assign("index.html") : window.location.assign("login.html")
+            }
+        }) 
+        $('.login-btn').click(function(){
+            let inputText = $('#login').val()
+            if (inputText === password) {
+                $('.top-layer').hide()
+                $('#login').val("")
+                sessionStorage.setItem("session", sid)
+                session = sessionStorage.getItem("session")
+                session === sid ? window.location.assign("index.html") : window.location.assign("login.html")
+            }
+        })
+    </script>
+</body>
+</html>
