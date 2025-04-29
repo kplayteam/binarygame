@@ -1,0 +1,85 @@
+* {
+  margin: 0;
+}
+body{
+  background-color: black;
+}
+canvas{
+  margin: 0 auto;
+}
+.container {
+  display: table;
+  width: 100%;
+}
+#leaderboard{
+  margin: 0 auto;
+  width: 55%;
+}
+.leader-board-header{
+  column-count: 2;
+  display: block;
+  margin: 20px 0;
+}
+.leader-board-text{
+  font-family: Pixel Digivolve;
+  color:#00ff2f;
+}
+#leader-board-your-score{
+  font-family: Pixel Digivolve;
+  color: white
+}
+#leader-close-btn{
+  background: transparent;
+  border: none;
+  float: right;
+}
+.currentUserStats{
+  color: #d6aa02;
+  font-size: 20px;
+  font-family: Pixel Digivolve;
+}
+#currentScore, #currentGig, #currentCorrectAnswers, #currentTime{
+  text-align: center;
+}
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+td, th {
+  border: 1px solid #dddddd00;
+  text-align: left;
+  padding: 8px;
+}
+#table_body td{
+  font-family: Pixel Digivolve;
+  font-size: 20px;
+}
+.tImg{
+  text-align: center;
+}
+.tName{
+  text-align: left;
+  width: 200px;
+  color: white;
+}
+.serial{
+  color: #00D928;
+  width: 50px;
+}
+.tBodyData{
+  text-align: center;
+  color: white;
+  width: 50px;
+}
+.error-db{
+  font-family: Pixel Digivolve;
+  margin-top: 20px;
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+}
+.zoomForMobile{
+  zoom: 2;
+  width: 90%!important;
+}

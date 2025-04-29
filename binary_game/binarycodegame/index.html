@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Meta Tags -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="user-scalable=no" />
+    <title>Binary Game</title>
+    <!-- Phaser JS Framework -->
+    <script src="phaser/phaser.min.js"></script>
+    <!-- Scroller & Shaker -->
+    <script src="phaser/phaser-kinetic-scrolling-plugin.js"></script>
+    <script src="phaser/shake.js"></script>
+    <!-- jQuery -->
+    <script language="JavaScript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.0/jquery.min.js"></script>
+    <!-- FavIcon -->
+    <link rel="icon" href="assets/icon/36x36.png" sizes="36x36" />
+    <!-- Custom Style CSS -->
+    <link rel="stylesheet" href="main.css" />
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Space+Mono:400,700" rel="stylesheet" />
+    <!-- All States/Scenes -->
+    <script src="scenes/taptostart.js"></script>
+    <script src="scenes/loading.js"></script>
+    <script src="scenes/modeselection.js"></script>
+    <script src="scenes/typeselection.js"></script>
+    <script src="scenes/levelselection.js"></script>
+    <script src="scenes/flipbinarypracticeeasy.js"></script>
+    <script src="scenes/flipbinarypracticenormal.js"></script>
+    <script src="scenes/keyindecimalpracticeeasy.js"></script>
+    <script src="scenes/keyindecimalpracticenormal.js"></script>
+    <script src="scenes/keyindecimalpracticehard.js"></script>
+    <script src="scenes/keyinbinarypracticeeasy.js"></script>
+    <script src="scenes/keyinbinarypracticenormal.js"></script>
+    <script src="scenes/keyinbinarypracticehard.js"></script>
+    <script src="scenes/playgamebinary.js"></script>
+    <script src="scenes/playgamedecimal.js"></script>
+    <script src="scenes/username.js"></script>
+    <script src="scenes/playmainmenu.js"></script>
+    <script src="scenes/playgameselection.js"></script>
+    <script src="scenes/gameover.js"></script>
+    <!-- <script src="scenes/leaderboard.js"></script> -->
+    <!-- Font Face Style  -->
+    <style media="screen" type="text/css">
+        @font-face {
+            font-family: Pixel Digivolve;
+            src: url("assets/font/Pixel Digivolve.otf");
+        }
+        /* @font-face {
+            font-family: Space Mono;
+        } */
+    </style>
+</head>
+<!-- Game Content -->
+<body>
+    <div Style="font-family: Pixel Digivolve; position: absolute; top: -100px">-</div>
+    <div class="container">
+        <div id="game"></div>
+        <div id="leaderboard" style="display: none;">
+            <div class="leader-board-header">
+                <h1 class="leader-board-text">Leadboard</h1>
+                <h2 id="leader-board-your-score">YOUR SCORE: 0</h2>
+                <button id="leader-close-btn">
+                    <img src="assets/images/closebutton.png" alt="close" width="40" />
+                </button>
+            </div>
+            <table class="table-main">
+                <thead>
+                    <tr>
+                        <td class="tImg"></td>
+                        <td class="tImg"></td>
+                        <td class="tImg"><img src="assets/images/kidocoin.png" alt="score" width="30"></td>
+                        <td class="tImg"><img src="assets/images/level.png" alt="gig" width="30"></td>
+                        <td class="tImg"><img src="assets/images/correctanswers.png" alt="correct" width="30"></td>
+                        <td class="tImg"><img src="assets/images/time.png" alt="time" width="30"></td>
+                    </tr>
+                    <tr>
+                        <td id="currentSerial" class="currentUserStats">-</td>
+                        <td id="currentName" class="currentUserStats">-</td>
+                        <td id="currentScore" class="currentUserStats">-</td>
+                        <td id="currentGig" class="currentUserStats">-</td>
+                        <td id="currentCorrectAnswers" class="currentUserStats">-</td>
+                        <td id="currentTime" class="currentUserStats">-</td>
+                    </tr>
+                </thead>
+                <tbody id="table_body">
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!-- Game Manager -->
+    <script src="scenes/main.js"></script>
+    <!-- Firebase -->
+    <!-- script src="https://www.gstatic.com/firebasejs/3.7.2/firebase.js"></script> -->
+     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+
+  <!-- Add Firebase products you want to use -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+  			apiKey: "AIzaSyDADtD-rYY4ENtJRDlLOZIZ7_Y2bYY37go",
+  			authDomain: "binarygame-eb17a.firebaseapp.com",
+  			projectId: "binarygame-eb17a",
+  			databaseURL: "https://binarygame-eb17a-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  			storageBucket: "binarygame-eb17a.firebasestorage.app",
+  			messagingSenderId: "825053246865",
+  			appId: "1:825053246865:web:9c03105d11d0a68f985630"
+			};
+        firebase.initializeApp(firebaseConfig);
+
+        var userDataRef = firebase.database().ref("leaders").orderByChild('totalScore')
+        userDataRef.on('value', function (snapshot) {
+            $("#table_body").empty();
+            let items = []
+            snapshot.forEach(function (childSnapshot) {
+                var childData = childSnapshot.val();
+                items.push(childSnapshot.val())
+                $('#db-empty').hide()
+            });
+
+            items.reverse().forEach(i => {
+                var serial = items.indexOf(i) + 1
+                var name = i.username
+                var score = i.totalScore;
+                var gig = i.gig;
+                var correct = i.totalCorrectAnswers;
+                var time = i.time;
+
+                $("#table_body").
+                    append("<tr><td class='serial'>" + '#' + serial + "</td><td class='tName'>" + name + "</td><td class='tBodyData'>" + score + "</td><td class='tBodyData'>" + gig + "</td><td class='tBodyData'>" + correct + "</td><td class='tBodyData'>" + time + "</td></tr>");
+            })
+        });
+
+        $('#leader-close-btn').click(function () {
+            $('#game').show()
+            $('#leaderboard').hide()
+        })
+    </script>
+
+    <!-- DETECT DEVICE-->
+    <script>
+        if (navigator.userAgent.match(/Android/i)
+            || navigator.userAgent.match(/iPhone/i)
+            || navigator.userAgent.match(/iPad/i)
+            || navigator.userAgent.match(/iPod/i)
+            || navigator.userAgent.match(/BlackBerry/i)
+            || navigator.userAgent.match(/Windows Phone/i)
+        ) {
+            $(window).load(function () {
+                $('#leaderboard').addClass('zoomForMobile');
+            });
+        }
+    </script>
+</body>
+
+</html>
