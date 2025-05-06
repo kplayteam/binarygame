@@ -336,7 +336,7 @@ function playModeDecimalCountDownTimer() {
     decimalRef.on("value", function (snapshot) {
         let decimalTimerData = snapshot.val()
         let decimalMinutes = parseInt(decimalTimerData.totalSeconds / 60) || 0;
-        let decimalSeconds = parseInt(decimalTimerData.totalSeconds % 60) || 00;
+        let decimalSeconds = parseInt(decimalTimerData.totalSeconds % 60) || 0;
 
         if (decimalSeconds < 10)
             decimalSeconds = "0" + decimalSeconds;
