@@ -5,6 +5,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="user-scalable=no" />
     <title>Binary Game</title>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js" integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+" crossorigin="anonymous"></script>
+    <script>
+        var host = location.host;
+        var socket = io.connect(`http://${host}`);
+    </script>
     <!-- jQuery -->
     <script language="JavaScript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.0/jquery.min.js"></script>
     <!-- Phaser JS Framework -->
@@ -144,7 +149,7 @@
     <!-- GAME MANAGER -->
     <script src="scenes/main.js"></script>
     <!-- SOCKETIO -->
-    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js" integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+" crossorigin="anonymous"></script>
+    
 
     <script>
         // ADMIN FIREBASE REFERENCE
@@ -159,10 +164,11 @@
         var socket;
 
         $(document).ready(function () {
-            var host = location.host;
-            socket = io.connect(`http://${host}`);
+
+            socket.on("debug_msg", function(data) { console.log(data); } )
 
             socket.on('admin_data', function (data) {
+                console.log(data);
                 if (data.binaryGame){
                     $('#start-decimal').prop('disabled', true);
                     $('#end-decimal').prop('disabled', true);

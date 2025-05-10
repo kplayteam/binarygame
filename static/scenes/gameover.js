@@ -63,10 +63,10 @@ demo.gameover.prototype = {
         //Check if status is true then call writeUserData() and set status to false
         if (isWriting) {
             isWriting = false;
-            if (idExists)
+            //if (idExists)
                 updateUserData();
-            else
-                writeUserData();
+            //else
+            //    writeUserData();
         }
     },
     update: function () {
@@ -76,19 +76,15 @@ demo.gameover.prototype = {
 };
 //Checking Previous Score from firbase
 function previousUserData() {
-    leaderRef.orderByChild("username").equalTo(userNameInputFieldText.text).once("value", function (snapshot) {
-        if (snapshot.exists()) {
-            idExists = true;
-            let data = snapshot.val()
-            Object.values(data).forEach(i => {
-                previousBinaryScore = i.binaryData.binaryScore
-                previousDecimalScore = i.decimalData.decimalScore
-                previousBinaryCorrectAnswer = i.binaryData.binaryCorrect
-                previousDecimalCorrectAnswer = i.decimalData.decimalCorrect
-                uid = i.id
-            });
-        }
-        else {
+    socket.on("user_data", function(data){
+        let user = data.user
+        if (user){
+            previousBinaryScore = user.binaryData.binaryScore
+            previousDecimalScore = user.decimalData.decimalScore
+            previousBinaryCorrectAnswer = user.binaryData.binaryCorrect
+            previousDecimalCorrectAnswer = user.decimalData.decimalCorrect
+            uid = user.username
+        }else{
             idExists = false;
             previousBinaryScore = 0
             previousDecimalScore = 0
@@ -97,6 +93,9 @@ function previousUserData() {
             console.log("doesn't exist");
         }
     });
+    socket.emit("user_data", {});
+
+
     console.log("Previous Binary", previousBinaryScore, "Current Binary", binaryScore)
     console.log("Previous Decimal", previousDecimalScore, "Current Decimal", decimalScore)
 
@@ -120,6 +119,7 @@ function previousUserData() {
     // totalCorrectAnswers = updatedBinaryAnswer + updatedDecimalAnswer
 }
 //Writing User's Data in Firebase
+/*
 function writeUserData() {
     console.log("Attempting to set the player data");
 
@@ -147,49 +147,37 @@ function writeUserData() {
             console.log("record uploaded successfully");
         }
     });
-}
+}*/
 //Updating User's Data in Firebase
 function updateUserData() {
+
     console.log("Attempting to update the player data");
 
-    leaderRef.child(userNameInputFieldText.text).update({
-        username: userNameInputFieldText.text,
-        binaryData: {
-            binaryScore: updatedBinaryScore,
-            binaryCorrect: updatedBinaryAnswer
+    var user_data = {
+        "username" : userNameInputFieldText.text,
+        "binaryData": {
+            "binaryScore": updatedBinaryScore,
+            "binaryCorrect": updatedBinaryAnswer
         },
-        decimalData: {
-            decimalScore: updatedDecimalScore,
-            decimalCorrect: updatedDecimalAnswer
+        "decimalData": {
+            "decimalScore": updatedDecimalScore,
+            "decimalCorrect": updatedDecimalAnswer
         },
-        totalScore: totalAccumalation,
-        totalCorrectAnswers: totalCorrectAnswers,
-        gig: playModeBinaryGig,
-        time: responseTime,
-        id: uid,
-        updatedAt: Date()
-    }, function (error) {
-        if (error) {
-            console.log(error);
-            updateUserData();
-        } else {
-            console.log("record uploaded successfully");
-        }
-    });
+        "gig": playModeBinaryGig,
+        "time": responseTime
+    }
+    console.log("user data", user_data)
+    socket.emit("update_user_data", {"data" : user_data});
+
 }
 //Read Firebase Game Status
 function playAgainButtonStatus() {
-    adminRef.on("value", function (snapshot) {
-        let playAgainData = snapshot.val()
-        if (playAgainData !== null) {
-            if (playAgainData.hasOwnProperty('binaryGame')) {
-                isBinaryPlayAgainStatusChanged = playAgainData.binaryGame
-            }
-            else if (playAgainData.hasOwnProperty('decimalGame')) {
-                isDecimalPlayAgainStatusChanged = playAgainData.decimalGame
-            }
-        }
-    });
+
+    socket.on("restart_game_status", function(data){
+        isBinaryPlayAgainStatusChanged = data.binaryGame;
+        isDecimalPlayAgainStatusChanged = data.decimalGame;
+    })
+    socket.emit("get_restart_game_status", {});
 }
 //Toggle Play Again Button from Firebase
 function togglePlayAgainButton() {
@@ -257,25 +245,21 @@ function currentPlayerLeaderBoardSerialNumber() {
     let currentUserTime = document.querySelector('#currentTime')
     let currentUserSerial = document.querySelector('#currentSerial')
 
-    leaderRef.orderByChild('totalScore').on("value", function (snapshot) {
-        let dbPlayerData = []
-        snapshot.forEach(function (childSnapshot) {
-            currentplayerData = childSnapshot.val();
-            dbPlayerData.push(currentplayerData);
-        });
-
-        dbPlayerData.reverse().forEach(i => {
+    socket.on('leaders_data_for_current', function (data) {
+        items = data.items;
+        items.reverse().forEach(i => {
             if (i.username === userNameInputFieldText.text) {
                 currentUserName.innerHTML = i.username;
                 currentUserScore.innerHTML = i.totalScore;
                 currentUserGig.innerHTML = i.gig;
                 currentUserCorrectAnswer.innerHTML = i.totalCorrectAnswers;
                 currentUserTime.innerHTML = i.time;
-                currentUserSerial.innerHTML = "#" + (dbPlayerData.indexOf(i) + 1);
+                currentUserSerial.innerHTML = "#" + (items.indexOf(i) + 1);
                 return
             }
         })
     });
+    socket.emit('get_leaders_for_current', {});
 }
 //Go to LeaderBoard Scene
 function onClickLeaderBoardButton() {

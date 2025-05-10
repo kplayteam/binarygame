@@ -209,8 +209,7 @@ demo.playgamebinary.prototype = {
         playModeBinaryResultLength = playModeStringfy.length;
         //Mapping Keyboard keys for Binary
         keyboardInputBinaryKeys();
-        //Firebase Reference
-        playModeBinaryRef = firebase.database().ref("admin/");
+
         //Firebase Countdown Timer
         playModeCountDownTimer();
         //Firebase Change game state to Gameover
@@ -266,7 +265,7 @@ demo.playgamebinary.prototype = {
 //Check Internet Connectivity 
 function playModeBinaryCheckInternetConnectivity(){
     if (navigator.onLine) {
-        console.log('online');
+        //console.log('online');
         if(playModeBinaryConnectivityBG.alpha === 1){
             playModeBinaryConnectivityBG.alpha = 0
             playModeBinaryConnectivityText.alpha = 0
@@ -296,16 +295,17 @@ function playModeBinaryCheckInternetConnectivity(){
 }
 //Firebase Countdown Timer
 function playModeCountDownTimer() {
-    playModeBinaryRef.on("value", function (snapshot) {
-        let binaryData = snapshot.val()
-        let binaryMinutes = parseInt(binaryData.totalSeconds / 60) || 0;
-        let binarySeconds = parseInt(binaryData.totalSeconds % 60) || 0;
+    socket.on("get_binary_game_status", function(data){
+        let totalSeconds = data.totalSeconds;
+        let binaryMinutes = parseInt(totalSeconds / 60) || 0;
+        let binarySeconds = parseInt(totalSeconds % 60) || 0;
 
         if (binarySeconds < 10)
             binarySeconds = "0" + binarySeconds;
 
         playModeBinaryFirebaseTime.text = binaryMinutes + ":" + binarySeconds;
     });
+    socket.emit("binary_game_status", {});
 }
 //Save & Load Stats to Browser LocalStorage
 function plaModeCurrentPlayerLocalStorage() {
@@ -813,8 +813,7 @@ function playModeResetAll() {
 }
 //When game status changes to false from firebase move to gameover state
 function playModeBinaryOnGameEndChangeState() {
-    playModeBinaryRef.on("value", function (snapshot) {
-        let data = snapshot.val()
+    socket.on("get_binary_game_end", function(data){
         if (data.binaryGame === false) {
             let stateName = game.state.getCurrentState().key
             if (stateName !== "gameover") {
@@ -822,6 +821,7 @@ function playModeBinaryOnGameEndChangeState() {
             }
         }
     });
+    socket.emit("get_binary_game_end", {});
 }
 //Input Cursor For All Devices Config
 function inputCursorForDevices() {

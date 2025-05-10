@@ -242,8 +242,7 @@ demo.playgamedecimal.prototype = {
         tweenRepeatTo.repeat(-1, 100);
         //Generate Binary Number
         playModeDecimalGenerateRandomNumber();
-        //Firebase Reference
-        decimalRef = firebase.database().ref("admin/");
+
         //Firebase Countdown Timer
         playModeDecimalCountDownTimer()
         //Firebase Change game state to Gameover
@@ -287,7 +286,7 @@ demo.playgamedecimal.prototype = {
 //Check Internet Connectivity 
 function playModeDecimalCheckInternetConnectivity(){
     if (navigator.onLine) {
-        console.log('online');
+        //console.log('online');
         if(playModeDecimalConnectivityBG.alpha === 1){
             playModeDecimalConnectivityBG.alpha = 0
             playModeDecimalConnectivityText.alpha = 0
@@ -333,16 +332,17 @@ function playModeDecimalCheckInternetConnectivity(){
 }
 //Firebase Countdown Timer
 function playModeDecimalCountDownTimer() {
-    decimalRef.on("value", function (snapshot) {
-        let decimalTimerData = snapshot.val()
-        let decimalMinutes = parseInt(decimalTimerData.totalSeconds / 60) || 0;
-        let decimalSeconds = parseInt(decimalTimerData.totalSeconds % 60) || 0;
+    socket.on("get_decimal_game_status", function(data){
+        let totalSeconds = data.totalSeconds;
+        let decimalMinutes = parseInt(totalSeconds / 60) || 0;
+        let decimalSeconds = parseInt(totalSeconds % 60) || 0;
 
         if (decimalSeconds < 10)
             decimalSeconds = "0" + decimalSeconds;
 
         decimalFirebaseTime.text = decimalMinutes + ":" + decimalSeconds;
     });
+    socket.emit("get_decimal_game_status", {});
 }
 //Save & Load Stats to Browser LocalStorage
 function plaModeDecimalCurrentPlayerLocalStorage() {
@@ -808,8 +808,7 @@ function playModeDecimalResetAll() {
 }
 //When game status changes to false from firebase move to gameover state
 function playModeDecimalOnGameEndChangeState() {
-    decimalRef.on("value", function (snapshot) {
-        let data = snapshot.val()
+    socket.on("get_decimal_game_end", function(data){
         if (data.decimalGame === false) {
             let stateName = game.state.getCurrentState().key
             if (stateName !== "gameover"){
@@ -817,6 +816,7 @@ function playModeDecimalOnGameEndChangeState() {
             }
         }
     });
+    socket.emit("get_decimal_game_end", {});
 }
 //All Devices Config
 function playModeDecimalDeviceConfig() {

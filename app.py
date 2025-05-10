@@ -4,12 +4,11 @@
 from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO, emit, send
 from tinydb import TinyDB, Query
-import time
-
+import time, logging
 
 #INIT
 app = Flask(__name__)
-socketio = SocketIO(app)
+socketio = SocketIO(app, logger=True, engineio_logger=True)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 db = TinyDB('db.json')
@@ -65,8 +64,13 @@ def static_proxy_scenes2(path):
     return send_from_directory('static', 'scenes/' + path)
 
 #SOCKETIO
-@socketio.on('get_admin')
-def handle_admin(data):
+
+@socketio.on("user_score_change")
+def handle_user_score_change(data):
+    print(data)
+    emit("debug_msg", {"s" : "hello"})
+
+def get_admin_data():
     Item = Query()
     gameType = admin_table.get(Item.type == 'gameType').get("value")
     endTime = admin_table.get(Item.type == 'endTime').get("value")
@@ -76,10 +80,15 @@ def handle_admin(data):
         "totalSeconds" : max(endTime - int(time.time()), 0)
     }
     if admin_data["totalSeconds"] == 0 and gameType != "none":
-        handle_game_end(data)
+        handle_game_end({})
         admin_data["binaryGame"] = False
         admin_data["decimalGame"] = False
-    emit('admin_data', admin_data)
+    return admin_data    
+
+@socketio.on('get_admin')
+def handle_admin(data):
+    emit("debug_msg", {"s" : "hello"})
+    emit('admin_data', get_admin_data())
 
 @socketio.on("clear_database")
 def handle_clear_database(data):
@@ -119,8 +128,14 @@ def handle_binary_start(data):
 
 @socketio.on("get_leaders")
 def handle_get_leaders(data):
+    print("get_leaders...")
     leaders_data = get_leaders_data()
     emit("leaders_data", leaders_data)
+
+@socketio.on("get_leaders_for_current")
+def handle_get_leaders_for_current(data):
+    leaders_data = get_leaders_data()
+    emit("leaders_data_for_current", leaders_data)    
 
 def get_leaders_data():
     leaders_data = { "items": []}
@@ -158,11 +173,46 @@ def handle_new_user(data):
         "decimalData" : {
             "decimalCorrect" : 0,
             "decimalScore" : 0
-        }
+        },
+        "createdAt" : time.time()
     }
     leaders_table.insert(user_data)
     broadcast_leaders_data()
 
+@socketio.on("get_user_data")
+def handle_get_user_data(data):
+    username = data.get("username")
+    Item = Query()
+    user = leaders_table.get(Item.name == username)
+    if not user: emit("user_data", {"user" : False})
+    else:
+        user_data = {"user" : dict(user)}
+        emit("user_data", user_data)
+
+@socketio.on("get_game_status")
+def handle_get_game_status(data):
+    emit('game_status', get_admin_data())
+
+@socketio.on("get_restart_game_status")
+def handle_get_restart_game_status(data):
+    emit('restart_status', get_admin_data())
+
+@socketio.on("get_binary_game_status")
+def handle_get_binary_game_status(data):
+    emit('binary_game_status', get_admin_data())    
+
+@socketio.on("get_decimal_game_status")
+def handle_get_decimal_game_status(data):
+    emit('decimal_game_status', get_admin_data())  
+
+@socketio.on("get_binary_game_end")
+def handle_get_binary_game_end(data):
+    emit('binary_game_end', get_admin_data())    
+
+@socketio.on("get_decimal_game_end")
+def handle_get_decimal_game_end(data):
+    emit('decimal_game_end', get_admin_data())     
+
 #RUN APP
 print("Server port: 5300")
-socketio.run(app, host="0.0.0.0", port=5300, use_reloader=False, allow_unsafe_werkzeug=True)
+socketio.run(app, host="0.0.0.0", port=5300, allow_unsafe_werkzeug=True)

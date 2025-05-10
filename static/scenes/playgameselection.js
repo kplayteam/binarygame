@@ -111,19 +111,11 @@ function onClickBackButton() {
 }
 //Read Firebase Game Status
 function readFirebaseGameStatus() {
-    adminRef.on("value", function (snapshot) {
-        let startGameData = snapshot.val()
-        if (startGameData !== null) {
-            if (startGameData.hasOwnProperty('binaryGame')) {
-                isBinaryGameStatusChanged = startGameData.binaryGame
-            }
-            else if (startGameData.hasOwnProperty('decimalGame')) {
-                isDecimalGameStatusChanged = startGameData.decimalGame
-            }
-        }
-    });
-    /*isBinaryGameStatusChanged = true;
-    isDecimalGameStatusChanged = true;*/
+    socket.on("game_status", function(data){
+        isBinaryGameStatusChanged = data.binaryGame;
+        isDecimalGameStatusChanged = data.decimalGame;
+    })
+    socket.emit("get_game_status", {});
 }
 //Toggle Binary & Decimal Button from Firebase
 function toggleStartGameButton() {

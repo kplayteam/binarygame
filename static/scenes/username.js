@@ -266,22 +266,6 @@ function onClickSubmitBtn() {
 }
 //Generating User id
 function generatingUserId() {
-    /*
-    leaderRef.orderByChild("username").equalTo(userNameInputFieldText.text).once("value", function (snapshot) {
-        if (!snapshot.exists()) {
-            idExists = false;
-            id = Math.random().toString(36).substring(2);
-            console.log("id:", id, "New User:", userNameInputFieldText.text)
-            pushNameIDToFirebase();
-        }
-        else {
-            idExists = true
-            let data = snapshot.val()
-            Object.values(data).forEach(i => {
-                console.log("uid:", i.id, "Existing User:", i.username)
-            })
-        }
-    });*/
     socket.emit("new_user", { "username" : userNameInputFieldText.text });
 }
 //If New User, Push Name & ID to Firebase

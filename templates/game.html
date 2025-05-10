@@ -5,6 +5,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="user-scalable=no" />
     <title>Binary Game</title>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js" integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+" crossorigin="anonymous"></script>
+    <script>
+        var host = location.host;
+        var socket = io.connect(`http://${host}`);
+    </script>
     <!-- Phaser JS Framework -->
     <script src="phaser/phaser.min.js"></script>
     <!-- Scroller & Shaker -->
@@ -92,12 +97,7 @@
     <!-- Game Manager -->
     <script src="scenes/main.js"></script>
     
-    <!-- SOCKETIO -->
-    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js" integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+" crossorigin="anonymous"></script>
-
     <script>
-       var host = location.host;
-            socket = io.connect(`http://${host}`);
 
        socket.on('leaders_data', function (data) {
                 $("#table_body").empty();
