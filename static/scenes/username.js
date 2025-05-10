@@ -266,6 +266,7 @@ function onClickSubmitBtn() {
 }
 //Generating User id
 function generatingUserId() {
+    /*
     leaderRef.orderByChild("username").equalTo(userNameInputFieldText.text).once("value", function (snapshot) {
         if (!snapshot.exists()) {
             idExists = false;
@@ -280,7 +281,8 @@ function generatingUserId() {
                 console.log("uid:", i.id, "Existing User:", i.username)
             })
         }
-    });
+    });*/
+    socket.emit("new_user", { "username" : userNameInputFieldText.text });
 }
 //If New User, Push Name & ID to Firebase
 function pushNameIDToFirebase() {

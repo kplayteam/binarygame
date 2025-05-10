@@ -18,9 +18,6 @@ var tapText;
 
 demo.taptostart.prototype = {
     preload: function () {
-        //Firebase Reference
-        leaderRef = firebase.database().ref("leaders")
-        adminRef = firebase.database().ref("admin")
         //All Devices Config
         TapToStartDeviceConfig();
 

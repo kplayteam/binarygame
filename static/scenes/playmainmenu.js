@@ -11,10 +11,10 @@ let leaderBoardLength;
 demo.playmainmenu.prototype = {
     preload: function () {
         //Retrieving DB Record Length
-        leaderRef = firebase.database().ref("leaders/");
-        leaderRef.on("value", function (snapshot) {
-            leaderBoardLength = snapshot.numChildren();
+        socket.on("leaders_length", function(data){
+            leaderBoardLength = data.numUsers;
         });
+        socket.emit("get_leaders_length", {});
         //All Device Config
         playModeMainMenuDeviceConfig();
         //Loading Assets

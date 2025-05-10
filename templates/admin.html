@@ -143,69 +143,59 @@
     </div>
     <!-- GAME MANAGER -->
     <script src="scenes/main.js"></script>
-    <!-- FIREBASE -->
-    <!-- <script src="https://www.gstatic.com/firebasejs/3.7.2/firebase.js"></script> -->
-     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <!-- SOCKETIO -->
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js" integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+" crossorigin="anonymous"></script>
 
-  <!-- Add Firebase products you want to use -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
     <script>
-        // INITIALIZE FIREBASE
-        const firebaseConfig = {
-  apiKey: "AIzaSyDADtD-rYY4ENtJRDlLOZIZ7_Y2bYY37go",
-  authDomain: "binarygame-eb17a.firebaseapp.com",
-  projectId: "binarygame-eb17a",
-  storageBucket: "binarygame-eb17a.firebasestorage.app",
-  databaseURL: "https://binarygame-eb17a-default-rtdb.asia-southeast1.firebasedatabase.app/",
-  messagingSenderId: "825053246865",
-  appId: "1:825053246865:web:9c03105d11d0a68f985630"
-};
-        firebase.initializeApp(firebaseConfig);
         // ADMIN FIREBASE REFERENCE
-        adminRef = firebase.database().ref('admin/');
-        leaderRef = firebase.database().ref('leaders/');
+        /*
+            {
+                "binaryGame" : false,
+                "decimalGame" : false,
+                "endTime": 0
+            }
+        */
         // WHEN PAGE IS REFRESHED/OPENDED AND IF TIMER IS REMAINING, RUN IT
+        var socket;
+
         $(document).ready(function () {
-            adminRef.once('value', function (snapshot) {
-                if (snapshot.exists()) {
-                    let timerData = snapshot.val();
-                    if (timerData.binaryGame) {
-                        $('#start-decimal').prop('disabled', true);
-                        $('#end-decimal').prop('disabled', true);
-                        totalSeconds = timerData.totalSeconds;
-                        timeSet();
-                    }
-                    else if (timerData.decimalGame) {
-                        $('#start-binary').prop('disabled', true);
-                        $('#end-binary').prop('disabled', true);
-                        totalSeconds = timerData.totalSeconds;
-                        timeSet();
-                    }
+            var host = location.host;
+            socket = io.connect(`http://${host}`);
+
+            socket.on('admin_data', function (data) {
+                if (data.binaryGame){
+                    $('#start-decimal').prop('disabled', true);
+                    $('#end-decimal').prop('disabled', true);
+                    totalSeconds = data.totalSeconds;
+                    timeSet();
+                }else if (data.decimalGame){
+                    $('#start-binary').prop('disabled', true);
+                    $('#end-binary').prop('disabled', true);
+                    totalSeconds = data.totalSeconds;
+                    timeSet();
                 }
-            })
-        });
-        // LEADERBOARD FIREBASE REFERENCE
-        leaderRef.orderByChild('totalScore').on('value', function (snapshot) {
-            $("#table_body").empty();
-            let items = []
-            snapshot.forEach(function (childSnapshot) {
-                let childData = childSnapshot.val();
-                items.push(childSnapshot.val())
-                $('#db-empty').hide()
             });
+            socket.emit('get_admin',{});
 
-            items.reverse().forEach(i => {
-                var serial = items.indexOf(i) + 1
-                var name = i.username
-                var score = i.totalScore;
-                var gig = i.gig;
-                var correct = i.totalCorrectAnswers;
-                var time = i.time;
+            socket.on('leaders_data', function (data) {
+                $("#table_body").empty();
+                items = data.items;
+                if (items.length > 0) $('#db-empty').hide();
+                console.log(items);
+                items.reverse().forEach(i => {
+                    var serial = items.indexOf(i) + 1
+                    var name = i.username
+                    var score = i.totalScore;
+                    var gig = i.gig;
+                    var correct = i.totalCorrectAnswers;
+                    var time = i.time;
 
-                $("#table_body").
-                    append("<tr><td class='serial'>" + '#' + serial + "</td><td class='tName'>" + name + "</td><td class='tBodyData'>" + score + "</td><td class='tBodyData'>" + gig + "</td><td class='tBodyData'>" + correct + "</td><td class='tBodyData'>" + time + "</td></tr>");
-            })
+                    $("#table_body").
+                        append("<tr><td class='serial'>" + '#' + serial + "</td><td class='tName'>" + name + "</td><td class='tBodyData'>" + score + "</td><td class='tBodyData'>" + gig + "</td><td class='tBodyData'>" + correct + "</td><td class='tBodyData'>" + time + "</td></tr>");
+                })
+            });
+            socket.emit('get_leaders', {});
+
         });
 
         let totalSeconds = 0;
@@ -220,83 +210,30 @@
 
         // REST PLAYER DATA
         function resetPlayerData(resetElementName) {
-            leaderRef.once('value').then(function (snapshot) {
-                snapshot.forEach(function (childSnapshot) {
-                    let childSnapshotName = childSnapshot.key
-                    let childSnapshotData = childSnapshot.val()
-                    let newTotalAccumalation = 0;
-                    let newTotalCorrectAnswers = 0;
-                    if (resetElementName === 'Reset Binary') {
-                        newTotalAccumalation = childSnapshotData.totalScore - childSnapshotData.binaryData.binaryScore
-                        newTotalCorrectAnswers = childSnapshotData.totalCorrectAnswers - childSnapshotData.binaryData.binaryCorrect
-                        leaderRef.child(childSnapshotName).update({
-                            binaryData: {
-                                binaryScore: 0,
-                                binaryCorrect: 0,
-                            },
-                            totalScore: newTotalAccumalation,
-                            totalCorrectAnswers: newTotalCorrectAnswers,
-                            gig: 3,
-                            time: 0,
-                            createdAt: Date(),
-                            updatedAt: Date()
-                        })
-                    }
-                    else {
-                        newTotalAccumalation = childSnapshotData.totalScore - childSnapshotData.decimalData.decimalScore
-                        newTotalCorrectAnswers = childSnapshotData.totalCorrectAnswers - childSnapshotData.decimalData.decimalCorrect
-                        leaderRef.child(childSnapshotName).update({
-                            decimalData: {
-                                decimalScore: 0,
-                                decimalCorrect: 0,
-                            },
-                            totalScore: newTotalAccumalation,
-                            totalCorrectAnswers: newTotalCorrectAnswers,
-                            gig: 3,
-                            time: 0,
-                            createdAt: Date(),
-                            updatedAt: Date()
-                        })
-                    }
-                });
-            });
+            let gameType = resetElementName === "Reset Binary" ? "binaryGame" : "decimalGame";
+            socket.emit("reset_player_data", {"gameType" : gameType});
+            window.location.reload("true");
         }
 
         // SET BINARY STATUS & TIMER IN FIREBASE
         function setBinaryStatus(isBinaryActive) {
-            adminRef.set({
-                binaryGame: isBinaryActive,
-                totalSeconds: totalSeconds,
-                totalMinutes: parseAmount,
-            })
+            socket.emit("game_start", {"gameType" : "binaryGame", "minutes" : parseAmount})
         }
         // END BINARY STATUS & TIME IN FIREBASE
         function endBinaryStatus(isBinaryActive) {
-            adminRef.set({
-                binaryGame: isBinaryActive,
-                endTime: 0
-            })
+            socket.emit("game_end", {})
         }
         // SET DECIMAL STATUS & TIMER IN FIREBASE
         function setDecimalStatus(isDecimalActive) {
-            adminRef.set({
-                decimalGame: isDecimalActive,
-                totalSeconds: totalSeconds,
-                totalMinutes: parseAmount,
-            })
+            socket.emit("game_start", {"gameType" : "decimalGame", "minutes" : parseAmount})
         }
         // END DECIMAL STATUS & TIME IN FIREBASE
         function endDecimalStatus(isDecimalActive) {
-            adminRef.set({
-                decimalGame: isDecimalActive,
-                endTime: 0
-            })
+            socket.emit("game_end", {})
         }
         // UPDATE TIMER IN FIREBASE EVERY SECOND
         function updatedCountDownTimer() {
-            adminRef.update({
-                totalSeconds: totalSeconds
-            })
+            //no use in socketio version
         }
 
         // TIMER LOGIC
@@ -416,7 +353,8 @@
             }
         })
         $('.clear-yes-btn').click(function () {
-            leaderRef.ref.remove()
+            socket.emit("clear_database", {});
+            window.location.reload(true);
             $('#clearModal').hide()
             $('#db-empty').show()
             $('.show-clear-password').show()
