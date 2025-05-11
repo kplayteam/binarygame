@@ -8,7 +8,7 @@ import time, logging
 
 #INIT
 app = Flask(__name__)
-socketio = SocketIO(app, logger=True, engineio_logger=True)
+socketio = SocketIO(app, logger=False, engineio_logger=False)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 db = TinyDB('db.json')
@@ -65,10 +65,13 @@ def static_proxy_scenes2(path):
 
 #SOCKETIO
 
-@socketio.on("user_score_change")
+@socketio.on("update_user_data")
 def handle_user_score_change(data):
-    print(data)
-    emit("debug_msg", {"s" : "hello"})
+    username = data.get("username")
+    Item = Query()
+    leaders_table.update(data, Item.username == username)
+    broadcast_leaders_data()
+    emit("debug_msg", "user data updated")
 
 def get_admin_data():
     Item = Query()
@@ -87,7 +90,6 @@ def get_admin_data():
 
 @socketio.on('get_admin')
 def handle_admin(data):
-    emit("debug_msg", {"s" : "hello"})
     emit('admin_data', get_admin_data())
 
 @socketio.on("clear_database")
@@ -128,7 +130,7 @@ def handle_binary_start(data):
 
 @socketio.on("get_leaders")
 def handle_get_leaders(data):
-    print("get_leaders...")
+    #print("get_leaders...")
     leaders_data = get_leaders_data()
     emit("leaders_data", leaders_data)
 
@@ -145,6 +147,7 @@ def get_leaders_data():
         user["totalScore"] = user["binaryData"]["binaryScore"] + user["decimalData"]["decimalScore"]
         user["totalCorrectAnswers"] = user["binaryData"]["binaryCorrect"] + user["decimalData"]["decimalCorrect"]
         leaders_data["items"].append(user)
+    leaders_data["items"] = list(sorted(leaders_data["items"], key=lambda x: x['totalScore']))
     return leaders_data    
 
 def broadcast_leaders_data():

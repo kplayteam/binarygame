@@ -167,7 +167,7 @@ function updateUserData() {
         "time": responseTime
     }
     console.log("user data", user_data)
-    socket.emit("update_user_data", {"data" : user_data});
+    socket.emit("update_user_data", user_data);
 
 }
 //Read Firebase Game Status

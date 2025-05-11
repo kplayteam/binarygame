@@ -98,7 +98,7 @@
     <script src="scenes/main.js"></script>
     
     <script>
-
+        socket.on("debug_msg", function(data) { console.log(data); } )
        socket.on('leaders_data', function (data) {
                 $("#table_body").empty();
                 items = data.items;
