@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Meta Tags -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="user-scalable=no" />
+    <title>Binary Game</title>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js" integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+" crossorigin="anonymous"></script>
+    <script>
+        var host = location.host;
+        var socket = io.connect(`http://${host}`);
+    </script>
+    <!-- jQuery -->
+    <script language="JavaScript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.0/jquery.min.js"></script>
+    <!-- Phaser JS Framework -->
+    <script src="phaser/phaser.min.js"></script>
+    <!-- Scroller & Shaker -->
+    <script src="phaser/phaser-kinetic-scrolling-plugin.js"></script>
+    <script src="phaser/shake.js"></script>
+    <!-- FavIcon -->
+    <link rel="icon" href="assets/icon/36x36.png" sizes="36x36" />
+    <!-- Custom Style CSS -->
+    <link rel="stylesheet" href="{{url_for('static', filename='admin.css')}}" />
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Space+Mono:400,700" rel="stylesheet" />
+    <!-- All States/Scenes -->
+    <script src="scenes/taptostart.js"></script>
+    <script src="scenes/loading.js"></script>
+    <script src="scenes/modeselection.js"></script>
+    <script src="scenes/typeselection.js"></script>
+    <script src="scenes/levelselection.js"></script>
+    <script src="scenes/flipbinarypracticeeasy.js"></script>
+    <script src="scenes/flipbinarypracticenormal.js"></script>
+    <script src="scenes/keyindecimalpracticeeasy.js"></script>
+    <script src="scenes/keyindecimalpracticenormal.js"></script>
+    <script src="scenes/keyindecimalpracticehard.js"></script>
+    <script src="scenes/keyinbinarypracticeeasy.js"></script>
+    <script src="scenes/keyinbinarypracticenormal.js"></script>
+    <script src="scenes/keyinbinarypracticehard.js"></script>
+    <script src="scenes/playgamebinary.js"></script>
+    <script src="scenes/playgamedecimal.js"></script>
+    <script src="scenes/username.js"></script>
+    <script src="scenes/playmainmenu.js"></script>
+    <script src="scenes/playgameselection.js"></script>
+    <script src="scenes/gameover.js"></script>
+    <!-- <script src="scenes/leaderboard.js"></script> -->
+    <script>
+        $(document).ready(function () {
+            let checkSession = sessionStorage.getItem("session");
+            if (!checkSession) {
+                $(".overlay").show();
+                window.location.assign("/binary_game/admin/login")
+            }
+            else {
+                $(".overlay").hide();
+            }
+        });
+    </script>
+    <!-- Font Face Style  -->
+    <style media="screen" type="text/css">
+        @font-face {
+            font-family:"Pixel Digivolve";
+            src: url("assets/font/pixel digivolve.otf");
+        }
+
+        /* @font-face {
+            font-family: Space Mono;
+        } */
+    </style>
+</head>
+
+<body>
+    <div class="overlay"></div>
+    <div class="container">
+        <div id="game"></div>
+        <div id="leaderboard">
+            <div class="ui-panel">
+                <!-- DATABASE BUTTONS -->
+                <button id="reset-binary" class="db-btn">Reset Binary</button>
+                <button id="reset-decimal" class="db-btn">Reset Decimal</button>
+                <button id="clear-db" class="db-btn">Clear Database</button>
+                <!-- RESET MODAL -->
+                <div id="resetModal" class="modal">
+                    <div class="modal-content">
+                        <p class="modal-description" id="reset-description">Are you sure you want to reset database?</p>
+                        <div class="modal-footer">
+                            <div class="show-reset-password">
+                                <input id="reset-password" type="password" placeholder="Enter password here" />
+                                <br>
+                                <button class="reset-no-btn">Close</button>
+                            </div>
+                            <div class="show-reset-binary" style="display: none;">
+                                <button class="reset-yes-btn">Yes</button>
+                                <button class="reset-no-btn">No</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- CLEAR MODAL -->
+                <div id="clearModal" class="modal">
+                    <div class="modal-content">
+                        <p class="modal-description" id="clear-description">Are you sure you want to clear database?</p>
+                        <div class="modal-footer">
+                            <div class="show-clear-password">
+                                <input id="clear-password" type="password" placeholder="Enter password here" />
+                                <br>
+                                <button class="clear-no-btn">Close</button>
+                            </div>
+                            <div class="show-clear-binary" style="display: none;">
+                                <button class="clear-yes-btn">Yes</button>
+                                <button class="clear-no-btn">No</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- COUNTDOWN INPUT -->
+                <h1 class="timer-text">Countdown Timer</h1>
+                <p id="timer">0:00</p>
+                <br>
+                <input id="request" type="number" min="0" max="60" placeholder="Enter minutes here" />
+                <br>
+                <!-- START & END GAME BUTTONS -->
+                <button id="start-binary" class="status-btn">Start Binary</button>
+                <button id="end-binary" class="status-btn">End Binary</button>
+                <button id="start-decimal" class="status-btn">Start Decimal</button>
+                <button id="end-decimal" class="status-btn">End Decimal</button>
+            </div>
+            <div class="score-list">
+                <table class="table-main">
+                    <thead>
+                        <tr>
+                            <td class="tImg"></td>
+                            <td class="tImg"></td>
+                            <td class="tImg"><img src="assets/images/kidocoin.png" alt="score" width="30"></td>
+                            <td class="tImg"><img src="assets/images/level.png" alt="gig" width="30"></td>
+                            <td class="tImg"><img src="assets/images/correctanswers.png" alt="correct" width="30"></td>
+                            <td class="tImg"><img src="assets/images/time.png" alt="time" width="30"></td>
+                        </tr>
+                    </thead>
+                    <tbody id="table_body">
+
+                    </tbody>
+                </table>
+                <p class="error-db" id="db-empty">No data available yet!</p>
+            </div>
+        </div>
+    </div>
+    <!-- GAME MANAGER -->
+    <script src="scenes/main.js"></script>
+    <!-- SOCKETIO -->
+    
+
+    <script>
+        // ADMIN FIREBASE REFERENCE
+        /*
+            {
+                "binaryGame" : false,
+                "decimalGame" : false,
+                "endTime": 0
+            }
+        */
+        // WHEN PAGE IS REFRESHED/OPENDED AND IF TIMER IS REMAINING, RUN IT
+        var socket;
+
+        $(document).ready(function () {
+
+            socket.on("debug_msg", function(data) { console.log(data); } )
+
+            socket.on('admin_data', function (data) {
+                console.log(data);
+                if (data.binaryGame){
+                    $('#start-decimal').prop('disabled', true);
+                    $('#end-decimal').prop('disabled', true);
+                    totalSeconds = data.totalSeconds;
+                    timeSet();
+                }else if (data.decimalGame){
+                    $('#start-binary').prop('disabled', true);
+                    $('#end-binary').prop('disabled', true);
+                    totalSeconds = data.totalSeconds;
+                    timeSet();
+                }
+            });
+            socket.emit('get_admin',{});
+
+            socket.on('leaders_data', function (data) {
+                $("#table_body").empty();
+                items = data.items;
+                if (items.length > 0) $('#db-empty').hide();
+                console.log(items);
+                items.reverse().forEach(i => {
+                    var serial = items.indexOf(i) + 1
+                    var name = i.username
+                    var score = i.totalScore;
+                    var gig = i.gig;
+                    var correct = i.totalCorrectAnswers;
+                    var time = i.time;
+
+                    $("#table_body").
+                        append("<tr><td class='serial'>" + '#' + serial + "</td><td class='tName'>" + name + "</td><td class='tBodyData'>" + score + "</td><td class='tBodyData'>" + gig + "</td><td class='tBodyData'>" + correct + "</td><td class='tBodyData'>" + time + "</td></tr>");
+                })
+            });
+            socket.emit('get_leaders', {});
+
+        });
+
+        let totalSeconds = 0;
+        let timeloop;
+        let parseAmount;
+        let requiredValue;
+        let minutes;
+        let seconds;
+        let startElementName;
+        let endElementName;
+        let resetElementName;
+
+        // REST PLAYER DATA
+        function resetPlayerData(resetElementName) {
+            let gameType = resetElementName === "Reset Binary" ? "binaryGame" : "decimalGame";
+            socket.emit("reset_player_data", {"gameType" : gameType});
+            window.location.reload("true");
+        }
+
+        // SET BINARY STATUS & TIMER IN FIREBASE
+        function setBinaryStatus(isBinaryActive) {
+            socket.emit("game_start", {"gameType" : "binaryGame", "minutes" : parseAmount})
+        }
+        // END BINARY STATUS & TIME IN FIREBASE
+        function endBinaryStatus(isBinaryActive) {
+            socket.emit("game_end", {})
+        }
+        // SET DECIMAL STATUS & TIMER IN FIREBASE
+        function setDecimalStatus(isDecimalActive) {
+            socket.emit("game_start", {"gameType" : "decimalGame", "minutes" : parseAmount})
+        }
+        // END DECIMAL STATUS & TIME IN FIREBASE
+        function endDecimalStatus(isDecimalActive) {
+            socket.emit("game_end", {})
+        }
+        // UPDATE TIMER IN FIREBASE EVERY SECOND
+        function updatedCountDownTimer() {
+            //no use in socketio version
+        }
+
+        // TIMER LOGIC
+        function timeSet() {
+            totalSeconds--;
+
+            if (totalSeconds < 0) {
+                totalSeconds = 0;
+                clearTimeout(timeloop);
+                let isBinaryButtonActive = $('#end-binary').prop('disabled')
+                isBinaryButtonActive ? endGame('End Decimal') : endGame('End Binary')
+                return;
+            }
+
+            minutes = parseInt(totalSeconds / 60);
+            seconds = parseInt(totalSeconds % 60);
+
+            if (seconds < 10)
+                seconds = "0" + seconds;
+
+            $('#timer').text(minutes + ":" + seconds);
+            updatedCountDownTimer();
+            timeloop = setTimeout(timeSet, 1000);
+        }
+
+        // START TRIGGER FOR BINARY GAME
+        function startGame(startElementName) {
+            requiredValue = $('#request').val();
+            if (requiredValue > 0) {
+                parseAmount = parseInt(requiredValue);
+                if (timeloop)
+                    clearTimeout(timeloop)
+
+                if (startElementName === 'Start Binary') {
+                    setBinaryStatus(true)
+                    $('#start-decimal').prop('disabled', true);
+                    $('#end-decimal').prop('disabled', true);
+                }
+                else {
+                    setDecimalStatus(true)
+                    $('#start-binary').prop('disabled', true);
+                    $('#end-binary').prop('disabled', true);
+                }
+                totalSeconds = parseAmount * 60;
+                timeSet();
+            }
+        }
+        // END TRIGGER FOR BINARY GAME
+        function endGame(endElementName) {
+            totalSeconds = 0;
+            clearTimeout(timeloop);
+            $('#timer').text('0:00');
+            if (endElementName === 'End Binary') {
+                endBinaryStatus(false)
+                $('#start-decimal').prop('disabled', false);
+                $('#end-decimal').prop('disabled', false);
+            }
+            else {
+                endDecimalStatus(false)
+                $('#start-binary').prop('disabled', false);
+                $('#end-binary').prop('disabled', false);
+            }
+        }
+
+        // ONCLICK START BINARY & DECIMAL BUTTON
+        $('#start-binary, #start-decimal').click(function (event) {
+            startElementName = event.target.innerHTML
+            startGame(startElementName)
+        })
+        // ONCLICK END BINARY & DECIMAL BUTTON
+        $('#end-binary, #end-decimal').click(function (event) {
+            endElementName = event.target.innerHTML
+            endGame(endElementName)
+        })
+
+        // ONCLICK RESET BUTTON
+        $('#reset-binary, #reset-decimal').click(function (event) {
+            resetElementName = event.target.innerHTML
+            $('#resetModal').show()
+            if (resetElementName === "Reset Binary")
+                $('#reset-description')[0].innerText = 'Are you sure you want to reset binary database?'
+            else
+                $('#reset-description')[0].innerText = 'Are you sure you want to reset decimal database?'
+        })
+        $('#reset-password').keypress(function (event) {
+            let password = "maysam"
+            let inputText = $('#reset-password').val()
+            let keycode = (event.keyCode ? event.keyCode : event.which);
+            if (keycode == '13' && inputText === password) {
+                $('.show-reset-password').hide()
+                $('.show-reset-binary').show()
+                $('#reset-password').val("")
+            }
+        })
+        $('.reset-yes-btn').click(function () {
+            $('#resetModal').hide()
+            $('.show-reset-password').show()
+            $('.show-reset-binary').hide()
+            resetPlayerData(resetElementName)
+        })
+        $('.reset-no-btn').click(function () {
+            $('#resetModal').hide()
+        })
+
+        // ONCLICK CLEAR BUTTON
+        $('#clear-db').click(function (event) {
+            $('#clearModal').show()
+        })
+        $('#clear-password').keypress(function (event) {
+            var password = "maysam"
+            var inputText = $('#clear-password').val()
+            var keycode = (event.keyCode ? event.keyCode : event.which);
+            if (keycode == '13' && inputText === password) {
+                $('.show-clear-password').hide()
+                $('.show-clear-binary').show()
+                $('#clear-password').val("")
+            }
+        })
+        $('.clear-yes-btn').click(function () {
+            socket.emit("clear_database", {});
+            window.location.reload(true);
+            $('#clearModal').hide()
+            $('#db-empty').show()
+            $('.show-clear-password').show()
+            $('.show-clear-binary').hide()
+        })
+        $('.clear-no-btn').click(function () {
+            $('#clearModal').hide()
+        })
+    </script>
+    <!-- DETECT DEVICE-->
+    <script>
+        // LEADERBOARD TOP PADDING
+        window.onload = AddTopPaddingToLeaderBoard;
+        window.onresize = AddTopPaddingToLeaderBoard;
+
+        function AddTopPaddingToLeaderBoard() {
+            let uiPanelHeigth = $('.ui-panel').innerHeight();
+            $('.score-list').css("padding-top", uiPanelHeigth);
+        }
+        
+        if (navigator.userAgent.match(/Android/i)
+            || navigator.userAgent.match(/iPhone/i)
+            || navigator.userAgent.match(/iPad/i)
+            || navigator.userAgent.match(/iPod/i)
+            || navigator.userAgent.match(/BlackBerry/i)
+            || navigator.userAgent.match(/Windows Phone/i)
+        ) {
+            $(window).load(function () {
+                $('#game').addClass('hideGameMobile');
+                $('#leaderboard').removeClass('leaderdesktopcss');
+                $('#leaderboard').addClass('leadermobilecss');
+            });
+        }
+        else {
+            $('#leaderboard').addClass('leaderdesktopcss');
+            $('.ui-panel').css("width", "55%")
+        }
+    </script>
+</body>
+
+</html>
