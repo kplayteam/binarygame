@@ -198,6 +198,7 @@ def handle_get_game_status(data):
 
 @socketio.on("get_restart_game_status")
 def handle_get_restart_game_status(data):
+    time.sleep(1000)
     emit('restart_status', get_admin_data())
 
 @socketio.on("get_binary_game_status")
